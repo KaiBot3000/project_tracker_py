@@ -70,6 +70,41 @@ def assign_grade(github, title, grade):
 
     print "Successfully graded %s with a %s on %s" % (github, grade, title)
 
+
+
+def add_project(title, description, max_grade):
+    """Add a project to the Projects table."""
+
+    QUERY = """
+        INSERT INTO Projects (title, description, max_grade) VALUES (?, ?, ?)
+    """
+
+    db_cursor.execute(QUERY, (title, description, max_grade))
+    db_connection.commit()
+
+    print "Successfully added %s: %s with a max grade of %s" % (title, description, max_grade)
+
+def get_grade_by_student(first_name):
+    """Get all of a student's grades, line by line."""
+
+    QUERY = """
+        SELECT g.project_title, g.grade 
+        FROM Students AS s JOIN Grades AS g 
+        ON s.github = g.student_github
+        WHERE s.first_name = ?
+    """
+
+    db_cursor.execute(QUERY, (first_name,))
+    row = db_cursor.fetchall()
+    
+    if row != []:
+        for project in row:
+            print 'Grade for %s: %s' %(project[0], project[1])
+    else:
+        print 'Please try again and enter a FIRST NAME'
+
+
+
 def handle_input():
     """Main loop.
 
@@ -80,29 +115,37 @@ def handle_input():
 
     while command != "quit":
         input_string = raw_input("HBA Database> ")
-        tokens = input_string.split()
+        tokens = input_string.split('|')
         command = tokens[0]
         args = tokens[1:]
 
         if command == "student":
-            github = args[0]
+            github = args[0] #works
             get_student_by_github(github)
 
         elif command == "new_student":
-            first_name, last_name, github = args   # unpack!
+            first_name, last_name, github = args[:3]   # unpack!
             make_new_student(first_name, last_name, github)
 
         elif command == "get_project_by_title":
-            title = args[0]
+            title = args[0] #works
             get_project_by_title(title)
 
         elif command == "get_grade_by_github_title":
-            github, title = args
+            github, title = args[:2]
             get_grade_by_github_title(github, title)
 
         elif command == "assign_grade":
-            github, title, grade = args
+            github, title, grade = args[:3]
             assign_grade(github, title, grade)
+
+        elif command == "add_project":
+            title, description, max_grade = args[:3]
+            add_project(title, description, max_grade)
+
+        elif command == "get_grade_by_student":
+            first_name = args[0] #doesn't work
+            get_grade_by_student(first_name)
 
 
 if __name__ == "__main__":
